@@ -16,6 +16,9 @@ The repository is organized by topic. Each directory contains:
 - [Overview of Optimization Techniques](Optimizations/optimizations.md)
 - [Stochastic Gradient Descent with Momentum](Optimizations/SGD_Momentum)
 
+### Convolution Neural Networks
+COMING SOON
+
 
 
 ---
