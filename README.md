@@ -13,11 +13,13 @@ The repository is organized by topic. Each directory contains:
 
 
 ### Optimization
-- [Overview of Optimization Techniques](Optimizations/optimizations.md)
-- [Stochastic Gradient Descent with Momentum](Optimizations/SGD_Momentum)
+ - [Overview of Optimization Techniques](Optimizations/optimizations.md)
+ - [Stochastic Gradient Descent with Momentum](Optimizations/SGD_Momentum)
 
 ### Convolution Neural Networks
-COMING SOON
+ - [LeNet](CNN/LeNet/lenet.md)
+ - [VGG Net](CNN/VGG%20Net/vggnet.md)
+ - [AlexNet](CNN/AlexNet/alexnet.md)
 
 
 
