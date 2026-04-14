@@ -3,12 +3,8 @@ import torch.nn as nn
 import torchvision.transforms.functional as TF
 
 
-# ─────────────────────────────────────────────────────────────
-# Building block: two 3×3 convolutions (same-padding, no bias)
-# followed by BatchNorm + ReLU each.
-# The original paper used valid (no) padding — we use padding=1
-# to keep spatial size the same, which is the modern convention.
-# ─────────────────────────────────────────────────────────────
+
+# Building block: two 3×3 convolutions (same-padding, no bias), followed my BatchNorm and ReLu
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -28,11 +24,9 @@ class DoubleConv(nn.Module):
         return self.block(x)
 
 
-# ─────────────────────────────────────────────────────────────
-# Encoder block: DoubleConv → MaxPool
-# Returns both the feature map (for the skip connection)
-# and the pooled output (to pass deeper into the encoder).
-# ─────────────────────────────────────────────────────────────
+
+# Encoder block: DoubleConv > MaxPool, returns max pool
+# Returns the feature map (for the skip connection)
 class EncoderBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -40,19 +34,18 @@ class EncoderBlock(nn.Module):
         self.pool   = nn.MaxPool2d(kernel_size=2, stride=2)
 
     def forward(self, x):
-        skip   = self.conv(x)   # kept for skip connection
+        skip   = self.conv(x)   
         pooled = self.pool(skip)
         return skip, pooled
 
 
-# ─────────────────────────────────────────────────────────────
+
 # Decoder block: upsample → concatenate skip → DoubleConv
-#
 # Upsampling is done with ConvTranspose2d (learnable), matching
 # the paper.  If the encoder used valid padding the spatial sizes
 # will not align perfectly; we centre-crop the skip connection
 # to match (same strategy used in the original paper).
-# ─────────────────────────────────────────────────────────────
+
 class DecoderBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -72,13 +65,12 @@ class DecoderBlock(nn.Module):
         return self.conv(x)
 
 
-# ─────────────────────────────────────────────────────────────
+
 # Full UNet
-#   - 4 encoder stages  (64 → 128 → 256 → 512)
-#   - Bottleneck        (512 → 1024)
-#   - 4 decoder stages  (1024 → 512 → 256 → 128 → 64)
+#   - 4 encoder stages  (64 > 128 > 256 > 512)
+#   - Bottleneck        (512 > 1024)
+#   - 4 decoder stages  (1024 > 512 > 256 > 128 > 64)
 #   - 1×1 conv output head
-# ─────────────────────────────────────────────────────────────
 class UNet(nn.Module):
     def __init__(self, in_channels=1, num_classes=2,
                  features=(64, 128, 256, 512)):
@@ -91,18 +83,18 @@ class UNet(nn.Module):
         """
         super().__init__()
 
-        # ── Encoder ──────────────────────────────────────────
+        # Encoder 
         self.encoders = nn.ModuleList()
         ch = in_channels
         for f in features:
             self.encoders.append(EncoderBlock(ch, f))
             ch = f
 
-        # ── Bottleneck ────────────────────────────────────────
-        # Deepest part of the U — no pooling, just DoubleConv
+        #  Bottleneck 
+        # Deepest part of the U - no pooling, just DoubleConv
         self.bottleneck = DoubleConv(features[-1], features[-1] * 2)
 
-        # ── Decoder ───────────────────────────────────────────
+        # Decoder 
         self.decoders = nn.ModuleList()
         ch = features[-1] * 2        # start from bottleneck channels
         for f in reversed(features):
@@ -110,32 +102,32 @@ class UNet(nn.Module):
             self.decoders.append(DecoderBlock(ch, f))
             ch = f
 
-        # ── Output head ───────────────────────────────────────
-        # 1×1 conv: maps 64 feature channels → num_classes
+        # Output head 
+        # 1×1 conv: maps 64 feature channels > num_classes
         self.output_conv = nn.Conv2d(features[0], num_classes,
                                      kernel_size=1)
 
     def forward(self, x):
-        # ── Encoder pass — store skip connections ────────────
+        # Encoder pass - store skip connections 
         skips = []
         for encoder in self.encoders:
             skip, x = encoder(x)
             skips.append(skip)
 
-        # ── Bottleneck ────────────────────────────────────────
+        # Bottleneck
         x = self.bottleneck(x)
 
-        # ── Decoder pass — consume skips in reverse order ────
+        # Decoder pass - consume skips in reverse order ─
         for decoder, skip in zip(self.decoders, reversed(skips)):
             x = decoder(x, skip)
 
-        # ── Output head ───────────────────────────────────────
+        # Output head 
         return self.output_conv(x)
 
 
-# ─────────────────────────────────────────────────────────────
-# Quick sanity check
-# ─────────────────────────────────────────────────────────────
+
+# Sanity check
+
 if __name__ == "__main__":
     model  = UNet(in_channels=1, num_classes=2)
     x      = torch.randn(1, 1, 572, 572)   # paper's input size
