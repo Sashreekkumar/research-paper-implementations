@@ -1,8 +1,5 @@
 """
-CNN Training Pipeline
-=====================
-Supports: ResNet (18/34/50/101/152), VGG (11/13/16/19), AlexNet, MobileNetV2
-Datasets : CIFAR-10, CIFAR-100, MNIST, FashionMNIST, ImageNet-style (custom folder)
+Supports: ResNet, VGG, MobileNetV2
 """
 
 import os

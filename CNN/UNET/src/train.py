@@ -1,23 +1,22 @@
 import os
 import torch
-import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 
-from dataset import BrainTumorDataset
-from UNET import UNet
-from dice_loss import DiceLoss
-from metrics import (
+from CNN.UNET.src.dataset import BrainTumorDataset
+from CNN.UNET.src.UNET import UNet
+from CNN.UNET.src.dice_loss import DiceLoss
+from CNN.UNET.src.metrics import (
     dice_score,
     iou_score,
     rand_error,
     hausdorff_error
 )
 
-# -------------------------
+
 # Setup
-# -------------------------
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 train_loader = DataLoader(
@@ -32,9 +31,9 @@ criterion = DiceLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
 
-# -------------------------
+
 # Training
-# -------------------------
+
 epochs = 10
 
 for epoch in range(epochs):
@@ -56,9 +55,8 @@ for epoch in range(epochs):
     print(f"Epoch {epoch+1}/{epochs} | Loss: {total_loss/len(train_loader):.4f}")
 
 
-# -------------------------
 # Evaluation (after training)
-# -------------------------
+
 model.eval()
 
 images, masks = next(iter(train_loader))
@@ -70,9 +68,9 @@ with torch.no_grad():
     preds_bin = (preds > 0.5).float()
 
 
-# -------------------------
+
 # Metrics
-# -------------------------
+
 dice = dice_score(preds_bin, masks).item()
 iou = iou_score(preds_bin, masks).item()
 rand = rand_error(preds_bin, masks).item()
@@ -85,9 +83,9 @@ print(f"Rand Error    : {rand:.4f}")
 print(f"Hausdorff Err : {haus:.4f}")
 
 
-# -------------------------
-# Visualization (paper-style figure)
-# -------------------------
+
+# Visualization 
+
 os.makedirs("results", exist_ok=True)
 
 plt.figure(figsize=(10, 4))
