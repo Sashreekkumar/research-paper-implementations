@@ -2,10 +2,7 @@
 import torch
 import torch.nn as nn
 
-'''
 
-
-'''
 class block(nn.Module):
     def __init__(
         self, in_channels, intermediate_channels, identity_downsample=None, stride=1

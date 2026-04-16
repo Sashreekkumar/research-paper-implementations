@@ -12,12 +12,22 @@ The repository is organized by topic. Each directory contains:
 
 ### Convolution Neural Networks
 
-| Model Name | Link | Blog |
-|------------|------|------|
-| UNET       | [UNET](CNN/UNET/UNET.md) | coming soon |
-| RESNET     | [RESNET](CNN/RESNET/RESNET.md) | coming soon |
-| VGG Net    | [VGG Net](CNN/VGG%20Net/vggnet.md) | NA |
+| Model Name | Link | Blog | Paper Link |
+|------------|------|------|------------|
+| UNET       | [UNET](CNN/UNET/UNET.md) | coming soon | |
+| RESNET     | [RESNET](CNN/RESNET/RESNET.md) | coming soon | |
+| VGG Net    | [VGG Net](CNN/VGG%20Net/vggnet.md) | NA | |
 
+### Transformers
+| Model Name | Link | Blog | Paper Link |
+|------------|------|------|------------|
+| Encoder-Decoder Transformer   | [Transformer](Attention_Is_All_You_Need/TRANSFORMER.md) | NA |  |
+| Vision Transformer  | [ViT](ViT/VIT.md) | NA |  |
+
+### Miscellaneous
+| Model Name | Link | Blog | Paper Link |
+|------------|------|------|------------|
+| VAE    | [VAE](Misc./VAE/VAE.md) | coming soon | |
 
 
 ---
