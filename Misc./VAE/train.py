@@ -1,7 +1,11 @@
+import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+import torch.nn.functional as F
+from vae import VAE
 
 # Data
+
 transform = transforms.ToTensor()
 
 dataset = datasets.MNIST(root='./data', train=True, transform=transform, download=True)
