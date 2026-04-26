@@ -1,6 +1,6 @@
 # Python cache
 
-**pycache**/
+**.mypy_cache**/
 *.pyc
 
 # Virtual environment

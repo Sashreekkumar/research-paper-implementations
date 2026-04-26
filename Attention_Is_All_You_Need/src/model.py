@@ -18,3 +18,14 @@ class InputEmbeddings(nn.Module):
         # (batch, seq_len) => (batch, seq_len, d_model)
         # Multiply by sqrt(d_model) to scale the embeddings according to the paper
         return self.embedding(x) * math.sqrt(self.d_model)
+    
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, seq_len, int, dropout: float):
+        super().__init__()
+        self.d_model = d_model
+        self.seq_len = seq_len
+        self.dropout = nn.Dropout(dropout)
+
+        # positional encoding 
+        pos_enc = torch.zeros(seq_len, d_model)
+    
