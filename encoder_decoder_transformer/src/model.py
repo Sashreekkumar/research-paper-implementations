@@ -148,7 +148,7 @@ class EncoderBlock(nn.Module):
 
     def forward(self, x, src_mask):
          x = self.residual_connections[0](x, lambda x: self.self_attention_block(x,x,x,src_mask))
-         x = self.residual_connections[1](x, self.feed_forward_network)
+         x = self.residual_connections[1](x, self.feed_forward_block)
          return x
 class Encoder(nn.Module):
     def __init__(self, features: int, layers: nn.ModuleList):
@@ -167,12 +167,14 @@ class DecoderBlock(nn.Module):
         self.self_attention_block = self_attention_block
         self.feed_forward_block = feed_forward_block
         self.cross_attention_block = cross_attention_block
-        self.residual_connections = nn.ModuleList([ResidualConnection(features, dropout) for _ in range(2)])
+        self.residual_connections = nn.ModuleList([ResidualConnection(features, dropout) for _ in range(3)])
 
     def forward(self, x, encoder_output, src_mask, tgt_mask):
-        x = self.residual_connections[0](x, lambda x: self.self_attention_block[x,x,x,src_mask])
-        x = self.residual_connections[0](x, lambda x: self.cross_attention_block[x,encoder_output, encoder_output,tgt_mask])
-        x = self.residual_connections[1](x, self.feed_forward_network)
+        x = self.residual_connections[0](x, lambda x: self.self_attention_block(x,x,x,tgt_mask))
+        x = self.residual_connections[0](x, lambda x: self.cross_attention_block(x,encoder_output, encoder_output,src_mask))
+        x = self.residual_connections[1](x, self.feed_forward_block)
+
+        return x
 
 class Decoder(nn.Module):
 
@@ -199,9 +201,10 @@ class LinearLayer(nn.Module):
         V: vocab length
         '''
         x = self.linear(x) #BSD -> BSV
+        return x
 
 class Transformer(nn.Module):
-    def __init__(self, encoder: Encoder, decoder: Decoder, linear_layer: LinearLayer, src_embed: InputEmbeddings, tgt_embed: InputEmbeddings, src_pos: PositionalEncodings, tgt_pos: PositionalEncodings, ):
+    def __init__(self, encoder: Encoder, decoder: Decoder, src_embed: InputEmbeddings, tgt_embed: InputEmbeddings, src_pos: PositionalEncodings, tgt_pos: PositionalEncodings, linear_layer: LinearLayer):
         super().__init__()
         self.encoder = encoder
         self.decoder = decoder
@@ -223,7 +226,6 @@ class Transformer(nn.Module):
 
     def linearLayer(self, x):
         return self.linear(x)
-    
 
 def build_transformer(src_vocab_size: int, src_seq_len: int, tgt_vocab_size: int, tgt_seq_len: int, d_model: int=512, N: int=6, h: int=8, dropout: float=0.1, d_ff: int=2048):
         
