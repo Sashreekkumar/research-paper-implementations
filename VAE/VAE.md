@@ -127,5 +127,13 @@ $$xhat(α) = decoder(z(α))$$
 
 ---
 
+## 4. References and Credits:
+
+This was possible becuase pf:
+
+1. [Ahlad Kumar- VAE Playlist](https://www.youtube.com/playlist?list=PLdxQ7SoCLQANizknbIiHzL_hYjEaI-wUe)
+2. [Umar Jamil - VAE explanation](https://youtu.be/iwEzwTTalbg?si=BO7wLM8oxqT2lYnP)
+
+---
 
 
