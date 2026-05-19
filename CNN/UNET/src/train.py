@@ -26,7 +26,7 @@ model = UNet(in_channels=1, num_classes=1).to(device)
 criterion = DiceLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
-epochs = 5
+epochs = 10
 
 for epoch in range(epochs):
     model.train()
