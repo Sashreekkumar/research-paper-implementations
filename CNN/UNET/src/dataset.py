@@ -3,10 +3,6 @@ import cv2
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-
-# -------------------------
-# Dataset Class
-# -------------------------
 class BrainTumorDataset(Dataset):
     def __init__(self, image_dir, mask_dir, img_size=256):
         self.image_paths = sorted(os.listdir(image_dir))
@@ -40,9 +36,6 @@ class BrainTumorDataset(Dataset):
         return image, mask
 
 
-# -------------------------
-# DataLoader helper
-# -------------------------
 def get_loader(image_dir, mask_dir, batch_size=4, shuffle=True, img_size=256):
     dataset = BrainTumorDataset(image_dir, mask_dir, img_size)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)

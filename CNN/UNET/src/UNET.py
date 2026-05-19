@@ -1,21 +1,18 @@
 import torch
 import torch.nn as nn
-import torchvision.transforms.functional as TF
+import torchvision.transforms.functional as F
 
 
 
-# Building block: two 3×3 convolutions (same-padding, no bias), followed my BatchNorm and ReLu
+# Basic Block 1: 2 - 3x3 convolutions followed by ReLu and batch-norm but with padding unlike the main paper to avoid cropping
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.block = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels,
-                      kernel_size=3, stride=1, padding=1, bias=False),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-
-            nn.Conv2d(out_channels, out_channels,
-                      kernel_size=3, stride=1, padding=1, bias=False),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
         )
@@ -25,8 +22,7 @@ class DoubleConv(nn.Module):
 
 
 
-# Encoder block: DoubleConv > MaxPool, returns max pool
-# Returns the feature map (for the skip connection)
+# Basic Block 2: Encoder
 class EncoderBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -40,47 +36,30 @@ class EncoderBlock(nn.Module):
 
 
 
-# Decoder block: upsample → concatenate skip → DoubleConv
-# Upsampling is done with ConvTranspose2d (learnable), matching
-# the paper.  If the encoder used valid padding the spatial sizes
-# will not align perfectly; we centre-crop the skip connection
-# to match (same strategy used in the original paper).
-
+# Basic Block 3: Decoder where upsample > concatenate skip > DoubleConv
 class DecoderBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        # up-conv 2×2 halves the channel count
-        self.up   = nn.ConvTranspose2d(in_channels, in_channels // 2,
-                                       kernel_size=2, stride=2)
+        self.up   = nn.ConvTranspose2d(in_channels, in_channels // 2,  kernel_size=2, stride=2)
         self.conv = DoubleConv(in_channels, out_channels)
 
     def forward(self, x, skip):
         x = self.up(x)
-
-        # Handle potential size mismatch caused by odd-dimension inputs
         if x.shape != skip.shape:
-            x = TF.resize(x, size=skip.shape[2:])
+            x = F.resize(x, size=skip.shape[2:])
 
-        x = torch.cat([skip, x], dim=1)   # channel-wise concatenation
+        x = torch.cat([skip, x], dim=1)   
         return self.conv(x)
 
 
 
 # Full UNet
-#   - 4 encoder stages  (64 > 128 > 256 > 512)
-#   - Bottleneck        (512 > 1024)
-#   - 4 decoder stages  (1024 > 512 > 256 > 128 > 64)
-#   - 1×1 conv output head
+# 4 encoder stages  (64 > 128 > 256 > 512)
+# Bottleneck        (512 > 1024)
+# 4 decoder stages  (1024 > 512 > 256 > 128 > 64)
+# 1x1 conv output head
 class UNet(nn.Module):
-    def __init__(self, in_channels=1, num_classes=2,
-                 features=(64, 128, 256, 512)):
-        """
-        Args:
-            in_channels : number of input image channels (1 for grayscale,
-                          3 for RGB)
-            num_classes : number of segmentation classes (output channels)
-            features    : channel progression through the encoder
-        """
+    def __init__(self, in_channels=1, num_classes=2, features=(64, 128, 256, 512)):
         super().__init__()
 
         # Encoder 
@@ -90,25 +69,20 @@ class UNet(nn.Module):
             self.encoders.append(EncoderBlock(ch, f))
             ch = f
 
-        #  Bottleneck 
-        # Deepest part of the U - no pooling, just DoubleConv
+        # Bottle Neck
         self.bottleneck = DoubleConv(features[-1], features[-1] * 2)
 
         # Decoder 
         self.decoders = nn.ModuleList()
-        ch = features[-1] * 2        # start from bottleneck channels
+        ch = features[-1] * 2      
         for f in reversed(features):
-            # DecoderBlock takes in_channels=ch, produces out_channels=f
             self.decoders.append(DecoderBlock(ch, f))
             ch = f
 
-        # Output head 
-        # 1×1 conv: maps 64 feature channels > num_classes
-        self.output_conv = nn.Conv2d(features[0], num_classes,
-                                     kernel_size=1)
+        # Output 
+        self.output_conv = nn.Conv2d(features[0], num_classes, kernel_size=1)
 
     def forward(self, x):
-        # Encoder pass - store skip connections 
         skips = []
         for encoder in self.encoders:
             skip, x = encoder(x)
@@ -130,9 +104,9 @@ class UNet(nn.Module):
 
 if __name__ == "__main__":
     model  = UNet(in_channels=1, num_classes=2)
-    x      = torch.randn(1, 1, 572, 572)   # paper's input size
+    x      = torch.randn(1, 1, 572, 572)  
     out    = model(x)
-    print(f"Input  : {x.shape}")           # (1, 1, 572, 572)
-    print(f"Output : {out.shape}")          # (1, 2, 572, 572) with padding=1
+    print(f"Input  : {x.shape}")           
+    print(f"Output : {out.shape}")        
     total  = sum(p.numel() for p in model.parameters())
     print(f"Params : {total:,}")

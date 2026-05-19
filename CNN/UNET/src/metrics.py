@@ -30,9 +30,6 @@ def rand_error(pred, target):
     return 1 - ((tp + tn) / total)
 
 def hausdorff_error(pred, target):
-    """
-    Measures worst-case boundary distance between prediction and ground truth.
-    """
     pred = pred.cpu().numpy()
     target = target.cpu().numpy()
 

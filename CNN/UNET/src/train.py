@@ -1,4 +1,3 @@
-import os
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -14,9 +13,6 @@ from CNN.UNET.src.metrics import (
     hausdorff_error
 )
 
-
-# Setup
-
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 train_loader = DataLoader(
@@ -30,11 +26,7 @@ model = UNet(in_channels=1, num_classes=1).to(device)
 criterion = DiceLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
-
-
-# Training
-
-epochs = 10
+epochs = 5
 
 for epoch in range(epochs):
     model.train()
@@ -55,8 +47,6 @@ for epoch in range(epochs):
     print(f"Epoch {epoch+1}/{epochs} | Loss: {total_loss/len(train_loader):.4f}")
 
 
-# Evaluation (after training)
-
 model.eval()
 
 images, masks = next(iter(train_loader))
@@ -76,17 +66,11 @@ iou = iou_score(preds_bin, masks).item()
 rand = rand_error(preds_bin, masks).item()
 haus = hausdorff_error(preds_bin[0][0], masks[0][0])
 
-print("\n===== RESULTS =====")
+print("METRICS")
 print(f"Dice Score    : {dice:.4f}")
 print(f"IoU Score     : {iou:.4f}")
 print(f"Rand Error    : {rand:.4f}")
 print(f"Hausdorff Err : {haus:.4f}")
-
-
-
-# Visualization 
-
-os.makedirs("results", exist_ok=True)
 
 plt.figure(figsize=(10, 4))
 
@@ -101,8 +85,3 @@ plt.imshow(masks[0][0].cpu(), cmap="gray")
 plt.subplot(1, 3, 3)
 plt.title("Prediction")
 plt.imshow(preds_bin[0][0].cpu(), cmap="gray")
-
-plt.savefig("results/sample_result.png", dpi=200, bbox_inches="tight")
-plt.close()
-
-print("\nSaved result to results/sample_result.png")
